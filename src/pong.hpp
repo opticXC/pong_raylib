@@ -14,5 +14,13 @@
 
 
 
-/// @brief collison check and related methods to run
+/// @brief test collision and run 
+/// @param player 
+/// @param r_paddle 
+/// @param ball 
 void _collision(Paddle* player, Paddle* r_paddle, Ball* ball);
+
+/// @brief move right paddle relative to the ball
+/// @param paddle 
+/// @param ball 
+void move_right(Paddle* paddle, Ball* ball, float movespeed);

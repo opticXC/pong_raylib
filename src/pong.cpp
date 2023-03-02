@@ -6,15 +6,14 @@ int main(){
     int screenHeight = 400;
 
     InitWindow(screenWidth, screenHeight, "title");
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetTargetFPS(60);
 
 
     float moveSpeed =  (float) screenHeight/1.5;
     float ballSpeed = (float) screenWidth/1.2;
 
-    Paddle* player = new Paddle( (Vector2){10, (float) screenHeight/2} , screenHeight/4);
-    Paddle* r_paddle = new Paddle( (Vector2){ (float) screenWidth -20, (float) screenHeight/2} , screenHeight/4);
+    Paddle* player = new Paddle( Vector2{10, (float) screenHeight/2} , screenHeight/4);
+    Paddle* r_paddle = new Paddle( Vector2{ (float) screenWidth -20, (float) screenHeight/2} , screenHeight/4);
     player->position.y -= player->length/2;
     r_paddle->position.y -= r_paddle->length/2;
 
@@ -24,7 +23,7 @@ int main(){
     Ball* ball = new Ball(Vector2{ (float) screenWidth/2, (float) screenHeight/2}, (float) screenHeight/125);
     ball->speed = { (float) GetRandomValue(-ballSpeed,ballSpeed) , (float) GetRandomValue(-ballSpeed,ballSpeed) };
 
-    Color defaultColor = (Color){100,100,100,255 };
+    Color defaultColor = Color{100,100,100,255 };
 
     float DeltaTime;
     while (!WindowShouldClose())
@@ -33,8 +32,10 @@ int main(){
         screenWidth = GetScreenWidth();
 
         player->position.y = Clamp(player->position.y + moveSpeed * GetVerticalAxis() * DeltaTime, 0, screenHeight - player->length );
+        move_right(r_paddle,ball, moveSpeed);
         ball->position.x += ball->speed.x * DeltaTime;
         ball->position.y += ball->speed.y * DeltaTime;
+
         _collision(player,r_paddle,ball);
 
 
@@ -62,7 +63,8 @@ int main(){
             DrawText(TextFormat("%d", score_1), screenWidth/2 - 50, 50, 24, defaultColor);
             DrawText(TextFormat("%d", score_2), screenWidth/2 + 50, 50, 24, defaultColor);
 
-        }EndDrawing();
+        }
+        EndDrawing();
     }
 
     CloseWindow();
@@ -82,14 +84,14 @@ int main(){
 void _collision(Paddle* player, Paddle* r_paddle, Ball* ball){
     if (ball->position.x - ball->radius <= player->position.x + 10 and (ball->position.y  -ball->radius >= player->position.y and ball->position.y -ball->radius <= player->position.y +player->length  ) )
     {   
-        ball->speed.x *= -1;
-        ball->speed.y *= (GetRandomValue(-500,500)/500) ;
+        ball->speed.x = abs(ball->speed.x) ;
+        ball->speed.y += (GetRandomValue(-500,500)/500) ;
 
     }
     else if (ball->position.x + ball->radius >= r_paddle->position.x and (ball->position.y  -ball->radius >= r_paddle->position.y and ball->position.y -ball->radius <= r_paddle->position.y +r_paddle->length  ))
     {
-        ball->speed.x *= -1;
-        ball->speed.y *= (GetRandomValue(-500,500)/500) ;
+        ball->speed.x =  -abs(ball->speed.x) ;
+        ball->speed.y += (GetRandomValue(-500,500)/500) ;
     }
     
     if (ball->position.y -ball->radius <=0 or ball->position.y +ball->radius >= GetScreenHeight()){
@@ -97,3 +99,15 @@ void _collision(Paddle* player, Paddle* r_paddle, Ball* ball){
     }
     
 };
+
+
+void move_right(Paddle* paddle, Ball* ball, float movespeed ){
+    int central = paddle->position.y + paddle->length/2;
+    if (ball->position.x < GetScreenWidth()/3) return;
+    float modifier;
+    if ( paddle->position.y > ball->position.y or paddle->position.y + paddle->length < ball->position.y ){
+            if (paddle->position.y > ball->position.y) modifier = -1;
+            else modifier = +1;
+        paddle->position.y = Clamp(paddle->position.y + movespeed * modifier * GetFrameTime(), 0, GetScreenHeight() - paddle->length);
+    }
+}
